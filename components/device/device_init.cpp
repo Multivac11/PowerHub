@@ -20,10 +20,6 @@ void DeviceInit::Init()
     {
         ESP_LOGE(TAG, "INA226 0x41 register failed");
     }
-    if (!I2CBusManager::GetInstance().RegisterINA226(0x42))
-    {
-        ESP_LOGE(TAG, "INA226 0x42 register failed");
-    }
     if (!I2CBusManager::GetInstance().RegisterINA226(0x44))
     {
         ESP_LOGE(TAG, "INA226 0x44 register failed");
@@ -31,5 +27,14 @@ void DeviceInit::Init()
     if (!I2CBusManager::GetInstance().RegisterINA226(0x45))
     {
         ESP_LOGE(TAG, "INA226 0x45 register failed");
+    }
+    if (!I2CBusManager::GetInstance().RegisterINA226(0x42))
+    {
+        ESP_LOGE(TAG, "INA226 0x42 register failed");
+    }
+
+    if (!I2CBusManager::GetInstance().RegisterTCA9535(0x20))
+    {
+        ESP_LOGE(TAG, "TCA9535 0x20 register failed");
     }
 }

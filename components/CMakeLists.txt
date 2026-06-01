@@ -2,6 +2,7 @@ set(src_dirs
     device
     device/i2c_device
     device/i2c_device/ina226
+    device/i2c_device/tca9535
     wifi_manager
     key
     lcd
@@ -13,6 +14,7 @@ set(include_dirs
     device
     device/i2c_device
     device/i2c_device/ina226
+    device/i2c_device/tca9535
     wifi_manager
     key
     lcd

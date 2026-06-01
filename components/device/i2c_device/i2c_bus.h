@@ -6,8 +6,10 @@
 #include "esp_log.h"
 #include "i2c_device.h"
 #include "ina226.h"
+#include "tca9535.h"
 
 class INA226;
+class TCA9535;
 
 #define I2C_MASTER_SCL_IO GPIO_NUM_17
 #define I2C_MASTER_SDA_IO GPIO_NUM_16
@@ -28,6 +30,8 @@ public:
     void Deinit();
 
     bool RegisterINA226(uint16_t addr);
+
+    bool RegisterTCA9535(uint16_t addr);
 
     template <typename T>
     T *GetDeviceByAddr(uint16_t addr)

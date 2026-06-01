@@ -5,6 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "i2c_bus.h"
+#include "key.h"
 
 #define MAX_LISTENERS 10
 #define MAX_INA 5
@@ -26,6 +27,7 @@ public:
         float current_ = 0.0f;
         float power_ = 0.0f;
         bool not_found_ = true;
+        bool enabled_ = false;
     };
 
     struct Event
@@ -41,11 +43,14 @@ public:
 
     static void PowerMonitorTask(void *);
 
-    static void TempControlTask(void *);
-
     void Monitor();
 
-    void TempControl();
+    // 通道输出控制（通过 TCA9535 P00~P04）
+    bool EnableChannel(uint8_t ch); // 开启通道输出（对应引脚拉高）
+
+    bool DisableChannel(uint8_t ch); // 关闭通道输出（对应引脚拉低）
+
+    bool SetChannelOutput(uint8_t ch, bool on);
 
     bool RegisterListener(QueueHandle_t queue);
 
@@ -59,4 +64,10 @@ private:
     QueueHandle_t listeners_[MAX_LISTENERS] = {};
 
     uint8_t listener_count_ = 0;
+
+    TCA9535 *tca9535_ = nullptr;
+
+    QueueHandle_t key_queue_ = nullptr;
+
+    bool channel_state_[MAX_INA] = {false};
 };

@@ -5,6 +5,9 @@
 
 static const char *TAG = "SceneManager";
 
+// INA226 实际 I2C 地址（非连续）
+static constexpr uint16_t kIna226Addrs[5] = {0x40, 0x41, 0x44, 0x45, 0x42};
+
 void SceneManager::SceneManagerInit()
 {
     esp_err_t ret = LcdRgb::GetInstance().LcdInit();
@@ -77,6 +80,14 @@ static void DrawCornerBrackets(LcdDriver &lcd, int cx, int cy, int cw, int ch, u
     lcd.DrawVLine(cx + cw - 6, cy + ch - 6 - B, B, color);
 }
 
+// 顶部状态指示：实心圆 + ON/OFF（y=共同的视觉中心线）
+static void DrawStatusIndicator(LcdDriver &lcd, int x, int y, bool on)
+{
+    uint16_t color = on ? kColorGreen : kColorRed;
+    lcd.FillCircle(x, y, 6, color);
+    lcd.DrawString(x + 14, y - 16, on ? "ON" : "OFF", color, kColorBlack, kFont16x32);
+}
+
 void SceneManager::UIManager()
 {
     LcdDriver &lcd = *lcd_;
@@ -120,6 +131,17 @@ void SceneManager::UIManager()
     lcd.DrawHLine(0, 47, W, kPhosphor);
     lcd.DrawHLine(0, 48, W, kPhosphorDim);
 
+    // 顶部状态指示（初始全部 OFF，CH + 圆 + ON/OFF 整体与卡片居中）
+    for (int i = 0; i < 5; ++i)
+    {
+        int cx = 4 + i * (kCardW + kCardGap);
+        char label[8];
+        snprintf(label, sizeof(label), "CH%d", i + 1);
+        lcd.DrawString(cx + 21, 7, label, kPhosphor, kColorBlack, kFont16x32);
+        int ix = cx + 91;
+        DrawStatusIndicator(lcd, ix, 23, false);
+    }
+
     // 卡片
     for (int i = 0; i < 5; ++i)
     {
@@ -142,7 +164,7 @@ void SceneManager::UIManager()
     for (int i = 0; i < 5; ++i)
     {
         int cx = 4 + i * (kCardW + kCardGap);
-        bool found = (I2CBusManager::GetInstance().GetDeviceByAddr<INA226>(0x41 + i) != nullptr);
+        bool found = (I2CBusManager::GetInstance().GetDeviceByAddr<INA226>(kIna226Addrs[i]) != nullptr);
         if (!found)
         {
             int tx = cx + (kCardW - 9 * 16) / 2;
@@ -165,6 +187,7 @@ void SceneManager::UIManager()
     float old_v[5] = {-1, -1, -1, -1, -1};
     float old_a[5] = {-1, -1, -1, -1, -1};
     float old_w[5] = {-1, -1, -1, -1, -1};
+    bool old_enabled[5] = {false, false, false, false, false};
 
     while (true)
     {
@@ -177,6 +200,23 @@ void SceneManager::UIManager()
         auto &ev = *data_;
         char buf[64];
         bool dirty = false;
+
+        // ===== 顶部状态指示更新 =====
+        for (int i = 0; i < 5; ++i)
+        {
+            bool on = ev.ina_data_[i].enabled_ && !ev.ina_data_[i].not_found_;
+            if (on != old_enabled[i])
+            {
+                int cx = 4 + i * (kCardW + kCardGap);
+                int ix = cx + 91;
+                // 清除旧指示（32px 字体, 中心线 y=23）
+                lcd.FillRect(ix - 8, 5, 70, 38, kColorBlack);
+                // 重绘
+                DrawStatusIndicator(lcd, ix, 23, on);
+                old_enabled[i] = on;
+                dirty = true;
+            }
+        }
 
         // 5 张卡片
         for (int i = 0; i < 5; ++i)

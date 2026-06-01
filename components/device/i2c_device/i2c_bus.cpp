@@ -55,3 +55,27 @@ bool I2CBusManager::RegisterINA226(uint16_t addr)
     ESP_LOGI(TAG, "INA226 registered at 0x%02X", addr);
     return true;
 }
+
+bool I2CBusManager::RegisterTCA9535(uint16_t addr)
+{
+    for (const auto &dev : devices_)
+    {
+        auto *i2c = static_cast<I2CDevice *>(dev.get());
+        if (i2c->GetAddress() == addr)
+        {
+            ESP_LOGE(TAG, "Device already registered at 0x%02X", addr);
+            return false;
+        }
+    }
+
+    auto dev = std::make_unique<TCA9535>(bus_handle_, addr);
+    if (!dev->Init())
+    {
+        ESP_LOGE(TAG, "TCA9535 init failed at 0x%02X", addr);
+        return false;
+    }
+
+    devices_.push_back(std::move(dev));
+    ESP_LOGI(TAG, "TCA9535 registered at 0x%02X", addr);
+    return true;
+}
