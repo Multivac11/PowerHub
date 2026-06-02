@@ -209,13 +209,52 @@ void PowerMonitor::KeyListener()
     {
         if (xQueueReceive(key_queue_, &ev, portMAX_DELAY) == pdTRUE)
         {
-            // GPIO 4 = key[2], 短按切换通道0
+            bool changed = false;
+
+            // key[2] (GPIO 4) → 上一个通道
             if (ev->key[2] == StatusKey::KEY_SHORT)
             {
-                if (channel_state_[4])
-                    DisableChannel(4);
+                if (selected_ch_ == 0)
+                    selected_ch_ = MAX_INA - 1;
                 else
-                    EnableChannel(4);
+                    selected_ch_--;
+                changed = true;
+                ESP_LOGI(TAG, "Select CH-%d", selected_ch_ + 1);
+            }
+            // key[0] (GPIO 6) → 下一个通道
+            if (ev->key[0] == StatusKey::KEY_SHORT)
+            {
+                if (selected_ch_ == MAX_INA - 1)
+                    selected_ch_ = 0;
+                else
+                    selected_ch_++;
+                changed = true;
+                ESP_LOGI(TAG, "Select CH-%d", selected_ch_ + 1);
+            }
+            // key[1] (GPIO 5) → 切换当前通道开关
+            if (ev->key[1] == StatusKey::KEY_SHORT)
+            {
+                if (channel_state_[selected_ch_])
+                    DisableChannel(selected_ch_);
+                else
+                    EnableChannel(selected_ch_);
+                // 立即同步 enabled_，避免 UI 延迟 70ms
+                event_.ina_data_[selected_ch_].enabled_ = channel_state_[selected_ch_];
+                changed = true;
+                ESP_LOGI(TAG, "CH-%d %s", selected_ch_ + 1, channel_state_[selected_ch_] ? "ON" : "OFF");
+            }
+
+            if (changed)
+            {
+                event_.selected_ch_ = selected_ch_;
+                for (int i = 0; i < listener_count_; ++i)
+                {
+                    if (listeners_[i])
+                    {
+                        Event *p = &event_;
+                        xQueueOverwrite(listeners_[i], &p);
+                    }
+                }
             }
         }
     }

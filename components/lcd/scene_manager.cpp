@@ -175,6 +175,12 @@ void SceneManager::UIManager()
         }
     }
 
+    // 初始选中通道 CH-1 方框
+    {
+        int cx0 = 4 + 0 * (kCardW + kCardGap);
+        lcd.DrawRect(cx0 + 8, 4, kCardW - 16, 40, kPhosphor);
+    }
+
     for (int i = 0; i < 5; ++i)
     {
         int cx = 4 + i * (kCardW + kCardGap);
@@ -188,6 +194,7 @@ void SceneManager::UIManager()
     float old_a[5] = {-1, -1, -1, -1, -1};
     float old_w[5] = {-1, -1, -1, -1, -1};
     bool old_enabled[5] = {false, false, false, false, false};
+    uint8_t old_selected = 0xFF;  // 0xFF 强制首次绘制
 
     while (true)
     {
@@ -216,6 +223,23 @@ void SceneManager::UIManager()
                 old_enabled[i] = on;
                 dirty = true;
             }
+        }
+
+        // ===== 选中通道方框更新 =====
+        uint8_t selected = ev.selected_ch_;
+        if (selected != old_selected)
+        {
+            // 清除旧方框
+            if (old_selected < 5)
+            {
+                int ocx = 4 + old_selected * (kCardW + kCardGap);
+                lcd.DrawRect(ocx + 8, 4, kCardW - 16, 40, kColorBlack);
+            }
+            // 绘制新方框
+            int cx = 4 + selected * (kCardW + kCardGap);
+            lcd.DrawRect(cx + 8, 4, kCardW - 16, 40, kPhosphor);
+            old_selected = selected;
+            dirty = true;
         }
 
         // 5 张卡片

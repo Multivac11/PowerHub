@@ -33,6 +33,7 @@ public:
     struct Event
     {
         MonitorData ina_data_[MAX_INA];
+        uint8_t selected_ch_ = 0;
     };
 
     PowerMonitor() = default;
@@ -74,4 +75,6 @@ private:
     QueueHandle_t key_queue_ = nullptr;
 
     bool channel_state_[MAX_INA] = {false};
+
+    uint8_t selected_ch_ = 0;
 };
