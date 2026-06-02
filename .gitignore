@@ -6,6 +6,9 @@
 # Directory metadata
 .directory
 
+.vscode/
+.devcontainer/
+
 # Temporary files
 *~
 *.swp

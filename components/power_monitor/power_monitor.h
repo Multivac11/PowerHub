@@ -43,7 +43,11 @@ public:
 
     static void PowerMonitorTask(void *);
 
+    static void KeyListenerTask(void *);
+
     void Monitor();
+
+    void KeyListener();
 
     // 通道输出控制（通过 TCA9535 P00~P04）
     bool EnableChannel(uint8_t ch); // 开启通道输出（对应引脚拉高）

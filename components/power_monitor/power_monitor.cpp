@@ -84,8 +84,15 @@ void PowerMonitor::PowerMonitorInit()
         ESP_LOGE(TAG, "TCA9535 0x20 not found");
     }
 
+    // EnableChannel(4);
+    // EnableChannel(1);
+    // EnableChannel(2);
+    // EnableChannel(3);
+    // EnableChannel(4);
+
     key_queue_ = xQueueCreate(1, sizeof(StatusKey::Event *));
     StatusKey::GetInstance().RegisterListener(key_queue_);
+    xTaskCreatePinnedToCore(KeyListenerTask, "KeyMonitorTask", 4096, this, 5, nullptr, 1);
 
     ESP_LOGI(TAG, "PowerMonitorInit");
 
@@ -189,3 +196,27 @@ bool PowerMonitor::DisableChannel(uint8_t ch)
 }
 
 /* ---------- 按键监听 ---------- */
+
+void PowerMonitor::KeyListenerTask(void *pvParameters)
+{
+    static_cast<PowerMonitor *>(pvParameters)->KeyListener();
+}
+
+void PowerMonitor::KeyListener()
+{
+    StatusKey::Event *ev = nullptr;
+    while (true)
+    {
+        if (xQueueReceive(key_queue_, &ev, portMAX_DELAY) == pdTRUE)
+        {
+            // GPIO 4 = key[2], 短按切换通道0
+            if (ev->key[2] == StatusKey::KEY_SHORT)
+            {
+                if (channel_state_[4])
+                    DisableChannel(4);
+                else
+                    EnableChannel(4);
+            }
+        }
+    }
+}
