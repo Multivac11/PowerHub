@@ -4,6 +4,7 @@
 #include "ap_wifi.h"
 #include "device_init.h"
 #include "key.h"
+#include "perf_monitor.h"
 #include "power_monitor.h"
 #include "scene_manager.h"
 
@@ -14,6 +15,7 @@ extern "C" void app_main(void)
 
     ApWifi::GetInstance().ApWifiInit();
     PowerMonitor::GetInstance().PowerMonitorInit();
+    PerfMonitor::GetInstance().Init();
     SceneManager::GetInstance().SceneManagerInit();
 
     // LcdRgb::GetInstance().LvglPortInit();

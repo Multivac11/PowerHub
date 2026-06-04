@@ -8,6 +8,7 @@ set(src_dirs
     lcd
     lcd/font
     power_monitor
+    perf_monitor
 )
 
 set(include_dirs
@@ -20,6 +21,7 @@ set(include_dirs
     lcd
     lcd/font
     power_monitor
+    perf_monitor
 )
 
 set(required_components
