@@ -6,6 +6,8 @@
 #include "esp_log.h"
 #include "i2c_device.h"
 #include "ina226.h"
+#include "mcp4725.h"
+#include "mp4201.h"
 #include "tca9535.h"
 
 class INA226;
@@ -32,6 +34,10 @@ public:
     bool RegisterINA226(uint16_t addr);
 
     bool RegisterTCA9535(uint16_t addr);
+
+    bool RegisterMP4201(uint16_t addr);
+
+    bool RegisterMCP4725(uint16_t addr);
 
     template <typename T>
     T *GetDeviceByAddr(uint16_t addr)
